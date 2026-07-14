@@ -8,8 +8,8 @@ IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 
 // --- KONFIGURACJA ---
-const char* ssid = "STIBDOM";
-const char* password = "kacper24";
+const char* ssid = "xxx";
+const char* password = "xxx";
 #define BUZZER_PIN 2 // Ustaw swój pin buzzera
 #define I2S_WS 7
 #define I2S_SD 5
