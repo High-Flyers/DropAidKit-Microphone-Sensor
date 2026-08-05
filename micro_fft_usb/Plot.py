@@ -2,7 +2,7 @@ import serial
 import matplotlib.pyplot as plt
 import numpy as np
 
-PORT = 'COM4'  # albo /dev/ttyUSB0 na Linuxie
+PORT = 'COM8'  # albo /dev/ttyUSB0 na Linuxie
 BAUD = 115200
 SAMPLES = 256
 FS = 16000
