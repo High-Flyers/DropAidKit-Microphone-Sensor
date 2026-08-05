@@ -75,7 +75,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     }
 
     // --- Slupki FFT ---
-    for (var i = 0; i < data.length; i++) {
+    for (var i = 5; i < data.length; i++) {
       var val = data[i];
       var barHeight = (val / maxVal) * plotH;
       var x = marginLeft + i * barWidth;
@@ -88,7 +88,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     // --- Etykiety osi X (Hz) ---
     ctx.fillStyle = '#888';
     ctx.textAlign = 'left';
-    for (var i = 0; i < data.length; i += 16) {
+    for (var i = 5; i < data.length; i += 16) {
       var freq = Math.round(i * freqStep);
       ctx.fillText(freq + 'Hz', marginLeft + i * barWidth, H - 5);
     }

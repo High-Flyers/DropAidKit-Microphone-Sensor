@@ -1,16 +1,14 @@
 #include <WiFi.h>
 #include <WebServer.h>
 
-const char* ssid = "xxx";
-const char* password = "xxx";
+const char* ssid = "ESP32_MIC_AP";
+const char* password = "hf21372137";
 
 const int buzzerPin = 0;
-const int ledcChannel = 0;
-const int ledcChannel1 = 1;
-const int resolution = 8;
 
-IPAddress local_IP(192, 168, 0, 200); 
-IPAddress gateway(192, 168, 0, 1);   
+// Ustawienia statycznego IP
+IPAddress local_IP(192, 168, 4, 200); 
+IPAddress gateway(192, 168, 4, 1);   
 IPAddress subnet(255, 255, 255, 0);
 
 WebServer server(80);
@@ -18,74 +16,64 @@ WebServer server(80);
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body{
-    font-family: Arial;
-    text-align: center;
-    margin-top: 40px;
-}
-input[type=range]{
-    width:300px;
-}
-</style>
-</head>
+<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body>
-
-<h2>BUZZER</h2>
-
-<p>Frequency: <span id="fVal">3000</span> Hz</p>
-
-<input type="range"
-       min="0"
-       max="10000"
-       value="3000"
-       oninput="document.getElementById('fVal').innerHTML=this.value; fetch('/update?freq='+this.value);">
-
+<h2>STEROWANIE BUZZEREM</h2>
+<button style="font-size:30px; padding:20px;" onclick="fetch('/on')">WLACZ</button>
+<button style="font-size:30px; padding:20px;" onclick="fetch('/off')">WYLACZ</button>
 </body>
 </html>
 )rawliteral";
 
 void setup() {
     Serial.begin(115200);
+    pinMode(buzzerPin, OUTPUT);
+    digitalWrite(buzzerPin, LOW);
 
-    ledcAttach(ledcChannel, 2700, resolution);
-    //ledcAttachPin(buzzerPin, ledcChannel);
-    ledcWriteTone(ledcChannel, 2700);
+    // Włączenie auto-reconnect wbudowanego w ESP32
+    WiFi.setAutoReconnect(true);
+    WiFi.persistent(true); // Zapisuje dane do flasha
 
-    ledcAttach(ledcChannel1, 2700, resolution);
-    //ledcAttachPin(buzzerPin, ledcChannel);
-    ledcWriteTone(ledcChannel1, 2700);
+    setupWiFi();
 
-    WiFi.config(local_IP, gateway, subnet);
-    WiFi.begin(ssid, password);
-
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
-
-    Serial.println();
-    Serial.print("IP: ");
-    Serial.println(WiFi.localIP());
-
-    server.on("/", []() {
-        server.send(200, "text/html", index_html);
-    });
-
-    server.on("/update", []() {
-        if (server.hasArg("freq")) {
-            int freq = server.arg("freq").toInt();
-            ledcWriteTone(ledcChannel, freq);
-            ledcWriteTone(ledcChannel1, freq);
-        }
-        server.send(200, "text/plain", "OK");
-    });
+    server.on("/", []() { server.send(200, "text/html", index_html); });
+    server.on("/on", []() { digitalWrite(buzzerPin, HIGH); server.send(200, "text/plain", "ON"); });
+    server.on("/off", []() { digitalWrite(buzzerPin, LOW); server.send(200, "text/plain", "OFF"); });
 
     server.begin();
 }
 
+void setupWiFi() {
+    WiFi.config(local_IP, gateway, subnet);
+    WiFi.begin(ssid, password);
+    Serial.print("Laczenie z WiFi...");
+    
+    // Czekamy chwilę na połączenie
+    unsigned long startAttempt = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < 10000) {
+        delay(500);
+        Serial.print(".");
+    }
+    
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("\nPolaczono!");
+        Serial.println(WiFi.localIP());
+    } else {
+        Serial.println("\nNie udalo sie polaczyc, probuje dalej w tle...");
+    }
+}
+
 void loop() {
+    // Sprawdzanie połączenia w pętli
+    if (WiFi.status() != WL_CONNECTED) {
+        static unsigned long lastCheck = 0;
+        if (millis() - lastCheck > 10000) { // Sprawdzaj co 10 sekund
+            Serial.println("Utracono polaczenie. Proba ponownego polaczenia...");
+            WiFi.disconnect();
+            WiFi.reconnect();
+            lastCheck = millis();
+        }
+    }
+
     server.handleClient();
 }
