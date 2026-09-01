@@ -1,0 +1,25 @@
+# ESP-IDF Build & Config outputs
+microphone/build/
+microphone/sdkconfig
+microphone/sdkconfig.old
+microphone/dependencies.lock
+
+# IDE specific files (Eclipse / VS Code)
+microphone/.settings/
+microphone/.cproject
+microphone/.project
+microphone/.clangd
+microphone/.DS_Store
+
+# ESP-IDF Build & Config outputs
+central/build/
+central/sdkconfig
+central/sdkconfig.old
+central/dependencies.lock
+
+# IDE specific files (Eclipse / VS Code)
+central/.settings/
+central/.cproject
+central/.project
+central/.clangd
+central/.DS_Store
